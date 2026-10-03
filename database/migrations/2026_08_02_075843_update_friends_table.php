@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('text_private', function (Blueprint $table) {
-            $table->text('message')->after('group_id');
+            $table->text('message')->after('group_id')->nullable();
         });
     }
 

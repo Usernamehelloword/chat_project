@@ -1,0 +1,56 @@
+services:
+  - type: web
+    name: websocket-chat
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore # Options: oregon, frankfurt, ohio, singapore
+    envVars:
+      - key: APP_NAME
+        value: WebSocketChat
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+
+      # Database Configuration
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: /var/www/html/database/database.sqlite
+
+      # Queue & Cache
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: CACHE_DRIVER
+        value: file
+      - key: SESSION_DRIVER
+        value: file
+
+      # Reverb Server & Broadcasting
+      - key: BROADCAST_DRIVER
+        value: reverb
+      - key: REVERB_APP_ID
+        value: "217697"
+      - key: REVERB_APP_KEY
+        value: "wltdrmzy3kql9kdlcowf"
+      - key: REVERB_APP_SECRET
+        generateValue: true
+      - key: REVERB_HOST
+        value: "127.0.0.1"
+      - key: REVERB_PORT
+        value: "8080"
+      - key: REVERB_SCHEME
+        value: "http"
+      - key: REVERB_SERVER_HOST
+        value: "0.0.0.0"
+      - key: REVERB_SERVER_PORT
+        value: "8080"

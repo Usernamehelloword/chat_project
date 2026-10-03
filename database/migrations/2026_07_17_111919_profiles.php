@@ -24,7 +24,7 @@ return new class extends Migration
     $table->string('email');
     $table->string('image')->nullable();
 
-    $table->enum('gender', ['M', 'F']);
+    $table->enum('gender', ['M', 'F'])->nullable();
 
     $table->text('description')->nullable();
 

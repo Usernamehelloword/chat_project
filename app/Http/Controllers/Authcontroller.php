@@ -18,24 +18,24 @@ class Authcontroller extends Controller
 
 public function view(Request $request)
 {
-    // =========================
+  
     // LOGGED-IN USER
-    // =========================
+  
 
     $user = User::findOrFail(Auth::id());
 
-    // =========================
+  
     // PROFILE
-    // =========================
+  
 
     $profile = Profiles::where(
         'user_id',
         Auth::id()
     )->first();
 
-    // =========================
+  
     // SEARCH
-    // =========================
+  
 
     $search_name = $request->input('search_name');
 
@@ -62,9 +62,9 @@ public function view(Request $request)
             ->get();
     }
 
-    // =========================
+  
     // FRIENDS
-    // =========================
+  
 
     $friend = Addfriend::where(function ($query) {
 
@@ -96,9 +96,9 @@ public function view(Request $request)
 
     });
 
-    // =========================
+  
     // GROUPS
-    // =========================
+  
 
 
 
@@ -114,9 +114,9 @@ $groups = Groupid::whereIn(
 ->orderBy('created_at', 'desc')
 ->get();
 
-    // =========================
+  
     // RETURN VIEW
-    // =========================
+  
 
     return view('main', compact(
         'user',

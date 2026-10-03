@@ -28,10 +28,8 @@ class AdminController extends Controller
 
         $user = User::findOrFail($id);
         $user->update($request->only(['name', 'email']));
-
-        if ($request->filled('password')) {
             $user->update(['password' => Hash::make($request->password)]);
-        }
+   
 
         return redirect()->route('admin.page')->with('success', 'User updated successfully.');
     }

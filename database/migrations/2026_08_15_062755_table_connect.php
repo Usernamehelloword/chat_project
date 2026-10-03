@@ -19,7 +19,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->foreignId('group_id')
-                ->constrained()
+                ->constrained('group_id')
                 ->cascadeOnDelete();
 
             $table->timestamps();

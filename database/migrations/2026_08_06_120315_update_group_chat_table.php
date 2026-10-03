@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('group_chat', function (Blueprint $table) {
-             $table->text('message')->after('group_name');
-        });
+        if (Schema::hasTable('group_chat') && !Schema::hasColumn('group_chat', 'message')) {
+            Schema::table('group_chat', function (Blueprint $table) {
+                $table->text('message')->after('group_name')->nullable();
+            });
+        }
     }
 
     /**

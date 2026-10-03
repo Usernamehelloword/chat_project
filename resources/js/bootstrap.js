@@ -15,18 +15,21 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
+const isHttps = (import.meta.env.VITE_REVERB_SCHEME ?? (typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https' : 'http')) === 'https';
+const defaultPort = isHttps ? 443 : 80;
+
 window.Echo = new Echo({
     broadcaster: 'reverb',
 
-    key: import.meta.env.VITE_REVERB_APP_KEY,
+    key: import.meta.env.VITE_REVERB_APP_KEY || 'wltdrmzy3kql9kdlcowf',
 
-    wsHost: import.meta.env.VITE_REVERB_HOST,
+    wsHost: import.meta.env.VITE_REVERB_HOST || (typeof window !== 'undefined' ? window.location.hostname : 'localhost'),
 
-    wsPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8080),
+    wsPort: Number(import.meta.env.VITE_REVERB_PORT ?? defaultPort),
 
     wssPort: Number(import.meta.env.VITE_REVERB_PORT ?? 443),
 
-    forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
+    forceTLS: isHttps,
 
     enabledTransports: ['ws', 'wss'],
 });

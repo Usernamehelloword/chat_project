@@ -14,12 +14,12 @@ return new class extends Migration
            Schema::create('add_friends', function (Blueprint $table) {
 
             $table->id();  
-            $table->integer('chat_id');
+            $table->integer('chat_id')->default(0);
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->integer('friend_id');
-            $table->string('group_name');
+            $table->integer('friend_id')->default(0);
+            $table->string('group_name')->default('0');
 
                 $table->timestamps();
         });
