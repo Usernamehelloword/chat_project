@@ -46,6 +46,23 @@ if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
     php /var/www/html/artisan migrate --force || echo "Migration warning or skipped."
 fi
 
+# SQLite Database handling & permissions (must be set after migrations so www-data can write)
+if [ "${DB_CONNECTION:-sqlite}" = "sqlite" ]; then
+    DB_PATH="${DB_DATABASE:-/var/www/html/database/database.sqlite}"
+    DB_DIR=$(dirname "$DB_PATH")
+
+    mkdir -p "$DB_DIR"
+    touch "$DB_PATH"
+
+    chown -R www-data:www-data "$DB_DIR"
+    chmod -R 777 "$DB_DIR"
+    chmod 666 "$DB_PATH"
+fi
+
+# Ensure storage permissions for www-data
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
 # Cache config, routes, and views if in production
 if [ "${APP_ENV:-production}" = "production" ]; then
     echo "Optimizing Laravel configuration and routes..."
