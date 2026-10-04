@@ -145,7 +145,7 @@ class Groupchatcontroller extends Controller
             'group_id',
             $groupId
         )
-            ->with('user')
+            ->with('user.profile')
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -240,7 +240,7 @@ class Groupchatcontroller extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $message->load('user');
+        $message->load('user.profile');
 
         /*
         |--------------------------------------------------------------------------

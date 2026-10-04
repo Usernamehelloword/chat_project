@@ -16,7 +16,7 @@ class Groupchat implements ShouldBroadcastNow
 
     public function __construct(Groupchatmodel $message)
     {
-        $this->message = $message->load('user');
+        $this->message = $message->load('user.profile');
     }
 
     public function broadcastOn(): array

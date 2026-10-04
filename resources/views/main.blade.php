@@ -1056,63 +1056,111 @@
         ========================================================= */
 
         .message {
-            max-width: 70%;
-
-            padding: 10px 14px;
-
+            display: flex;
+            flex-direction: column;
             margin-bottom: 10px;
-
-            border-radius: 18px;
-
-            color: white;
-
-            background:
-                #c97575;
-
-            box-shadow:
-                0 5px 12px rgba(0,0,0,.08);
-
-            animation:
-                messageIn .25s ease;
-
-            word-break: break-word;
+            max-width: 78%;
+            animation: messageIn .25s ease;
         }
 
         .message-other {
             align-self: flex-start;
-
-            border-bottom-left-radius: 5px;
+            align-items: flex-start;
         }
 
         .message-mine {
             align-self: flex-end;
+            align-items: flex-end;
+        }
 
+        .message-user {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            margin-left: 2px;
+            color: #743737;
+            opacity: .85;
+        }
+
+        .message-bubble {
+            padding: 7px 12px;
+            border-radius: 16px;
+            color: white;
+            box-shadow: 0 3px 8px rgba(0,0,0,.08);
+            word-break: break-word;
+            display: inline-block;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .message-bubble-mine {
             background:
                 linear-gradient(
                     135deg,
                     #ad5a5a,
                     #c66f6f
                 );
-
-            border-bottom-right-radius: 5px;
+            border-bottom-right-radius: 4px;
         }
 
-        .message-user {
-            font-size: 10px;
-
-            font-weight: bold;
-
-            margin-bottom: 4px;
-
-            opacity: .75;
+        .message-bubble-other {
+            background: #c97575;
+            border-bottom-left-radius: 4px;
         }
 
         .message-text {
-            font-size: 14px;
-
-            line-height: 1.45;
-
+            font-size: 13.5px;
+            line-height: 1.35;
             white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .message-below {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 3px;
+            padding: 0 2px;
+        }
+
+        .message-below-mine {
+            justify-content: flex-end;
+        }
+
+        .message-below-other {
+            justify-content: flex-start;
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: #8c5757;
+            opacity: 0.75;
+            white-space: nowrap;
+        }
+
+        .message-avatar-mini {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid white;
+            box-shadow: 0 1px 4px rgba(0,0,0,.15);
+            flex-shrink: 0;
+        }
+
+        .message-avatar-mini-default {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #b96464;
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid white;
+            box-shadow: 0 1px 4px rgba(0,0,0,.15);
+            flex-shrink: 0;
         }
 
         .chat-loading {
@@ -1729,7 +1777,8 @@
                                 onclick="openChat(
                                     '{{ $item->friend->id }}',
                                     @js($item->friend->name),
-                                    '{{ $item->friend->number_id }}'
+                                    '{{ $item->friend->number_id }}',
+                                    @js($item->friend->profile?->image ? asset('storage/'.$item->friend->profile->image) : null)
                                 )"
                             >
 
@@ -1812,7 +1861,8 @@
                                 onclick="openChat(
                                     '{{ $item->user->id }}',
                                     @js($item->user->name),
-                                    '{{ $item->user->number_id }}'
+                                    '{{ $item->user->number_id }}',
+                                    @js($item->user->profile?->image ? asset('storage/'.$item->user->profile->image) : null)
                                 )"
                             >
 
@@ -2004,7 +2054,8 @@
                         onclick="openChat(
                             '{{ $searchUser->id }}',
                             @js($searchUser->name),
-                            '{{ $searchUser->number_id }}'
+                            '{{ $searchUser->number_id }}',
+                            @js($searchUser->profile?->image ? asset('storage/'.$searchUser->profile->image) : null)
                         )"
                     >
 
@@ -2115,6 +2166,10 @@ let groupPollTimer = null;
 let renderedMessageIds = new Set();
 
 const MY_USER_ID = Number({{ auth()->id() }});
+const CURRENT_USER_AVATAR = @js($user->profile?->image ? asset('storage/'.$user->profile->image) : null);
+const CURRENT_USER_NAME = @js($user->name);
+const STORAGE_URL = @js(asset('storage'));
+let currentFriendAvatar = null;
 
 const csrfToken =
     document
@@ -2133,6 +2188,25 @@ function escapeHtml(text)
     div.textContent = text ?? '';
 
     return div.innerHTML;
+}
+
+
+function formatMessageTime(dateString)
+{
+    if (!dateString) {
+        const now = new Date();
+        return now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    try {
+        const d = new Date(dateString);
+        if (isNaN(d.getTime())) {
+            return '';
+        }
+        return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } catch (e) {
+        return '';
+    }
 }
 
 
@@ -2219,6 +2293,7 @@ function closeMobileChat()
     selectedGroup = null;
     selectedChat = null;
     currentGroupName = null;
+    currentFriendAvatar = null;
 }
 
 
@@ -2560,7 +2635,7 @@ function leaveGroupChannel()
    OPEN PRIVATE CHAT
 ========================================================= */
 
-function openChat(id, name, number_id)
+function openChat(id, name, number_id, avatarUrl = null)
 {
     stopGroupPolling();
 
@@ -2576,6 +2651,8 @@ function openChat(id, name, number_id)
 
     currentGroupName = null;
 
+    currentFriendAvatar = avatarUrl || null;
+
     renderedMessageIds.clear();
 
 
@@ -2589,7 +2666,10 @@ function openChat(id, name, number_id)
     chatArea.classList.add('active');
     document.body.classList.add('chat-open');
 
-  
+    const headerAvatar = avatarUrl
+        ? `<img src="${avatarUrl}" class="chat-header-avatar" style="object-fit:cover;cursor:pointer;" onclick="openProfile()" alt="${escapeHtml(name)}">`
+        : `<button type="button" class="chat-header-avatar" onclick="openProfile()">👤</button>`;
+
     chatArea.innerHTML = `
 
         <div class="chat-header">
@@ -2601,13 +2681,7 @@ function openChat(id, name, number_id)
             >
                 ←
             </button>
-                   <button
-                type="button"
-                class="chat-header-avatar"
-                onclick="openProfile()"
-            >
-                👤
-            </button>
+            ${headerAvatar}
             <div class="chat-header-info">
 
                 <div class="chat-header-title">
@@ -4054,7 +4128,7 @@ function showMessage(message)
      */
 
     const messageText =
-        message.message ?? '';
+        (message.message ?? '').toString().trim();
 
 
     /*
@@ -4099,34 +4173,33 @@ function showMessage(message)
         !mine
     ) {
 
-        userHtml = `
-
-            <div class="message-user">
-
-                ${escapeHtml(
-                    username
-                )}
-
-            </div>
-
-        `;
+        userHtml = `<div class="message-user">${escapeHtml(username)}</div>`;
 
     }
 
+    let avatarSrc = null;
+    if (mine) {
+        const imgPath = message.user?.profile?.image;
+        avatarSrc = imgPath ? (STORAGE_URL + '/' + imgPath) : CURRENT_USER_AVATAR;
+    } else {
+        const imgPath = message.user?.profile?.image;
+        avatarSrc = imgPath ? (STORAGE_URL + '/' + imgPath) : currentFriendAvatar;
+    }
 
-    messageDiv.innerHTML = `
+    const avatarHtml = avatarSrc
+        ? `<img src="${avatarSrc}" class="message-avatar-mini" alt="${escapeHtml(username)}">`
+        : `<div class="message-avatar-mini-default">👤</div>`;
 
-        ${userHtml}
+    const timeString = formatMessageTime(message.created_at);
+    const timeHtml = timeString
+        ? `<span class="message-time">${escapeHtml(timeString)}</span>`
+        : '';
 
-        <div class="message-text">
+    const belowHtml = mine
+        ? `<div class="message-below message-below-mine">${timeHtml}${avatarHtml}</div>`
+        : `<div class="message-below message-below-other">${avatarHtml}${timeHtml}</div>`;
 
-            ${escapeHtml(
-                messageText
-            )}
-
-        </div>
-
-    `;
+    messageDiv.innerHTML = `${userHtml}<div class="message-bubble ${mine ? 'message-bubble-mine' : 'message-bubble-other'}"><div class="message-text">${escapeHtml(messageText)}</div></div>${belowHtml}`;
 
 
     /*

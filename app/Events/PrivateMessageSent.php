@@ -15,7 +15,7 @@ class PrivateMessageSent implements ShouldBroadcast
      public Textprivaye $message;
     public function __construct(Textprivaye $message)
     {
-        $this->message=$message;
+        $this->message = $message->load('user.profile');
     }
 
     public function broadcastOn(): array
@@ -23,12 +23,19 @@ class PrivateMessageSent implements ShouldBroadcast
         return [
             new PrivateChannel(
                 'chat.'.$this->message->chat_id
-          )
-      ];
+            )
+        ];
     }
 
     public function broadcastAs(): string
     {
         return 'message.sent';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'message' => $this->message,
+        ];
     }
 }

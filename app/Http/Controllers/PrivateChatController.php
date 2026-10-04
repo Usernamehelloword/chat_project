@@ -19,6 +19,7 @@ class PrivateChatController extends Controller
             $request->friend_id
         );
         $messages = Textprivaye::where('chat_id',$chatId)
+            ->with(['user.profile'])
             ->orderBy('created_at','asc')
             ->get();
 
@@ -50,6 +51,8 @@ class PrivateChatController extends Controller
             'chat_id'=>$chatId,
             'message'=>$request->message
         ]);
+
+        $message->load('user.profile');
 
         broadcast(new PrivateMessageSent($message))
             ->toOthers();
