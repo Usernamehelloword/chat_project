@@ -188,15 +188,15 @@ body{
 
 .rounded-circle{
 
-    width:170px;
+    width:150px;
 
-    height:170px;
+    height:150px;
 
     border-radius:50%;
 
     object-fit:cover;
 
-    border:6px solid white;
+    border:5px solid white;
 
     box-shadow:
     0 10px 25px rgba(0,0,0,.25);
@@ -205,11 +205,40 @@ body{
 
 }
 
+.profile-placeholder-circle{
 
+    width:150px;
 
+    height:150px;
+
+    margin:0 auto;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,0.25);
+
+    border:5px solid white;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.25);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:white;
+
+    font-size:60px;
+
+    transition:.3s;
+
+}
+
+.profile-placeholder-circle:hover,
 .rounded-circle:hover{
 
-    transform:scale(1.08);
+    transform:scale(1.05);
 
 }
 
@@ -401,7 +430,43 @@ p{
 
 }
 
+@media (max-width: 820px) {
+    .container {
+        width: 95%;
+        margin: 20px auto 40px;
+    }
 
+    .row {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .col-md-4,
+    .col-md-8 {
+        width: 100%;
+    }
+
+    .card {
+        border-radius: 20px;
+    }
+
+    .card-body {
+        padding: 22px 18px;
+    }
+
+    .card-header {
+        padding: 16px;
+        font-size: 19px;
+    }
+
+    .rounded-circle,
+    .profile-placeholder-circle {
+        width: 130px;
+        height: 130px;
+        font-size: 50px;
+        border-width: 4px;
+    }
+}
 
 </style>
 
@@ -431,23 +496,20 @@ p{
     $pageProfileImgUrl = $pageProfileImg ? (str_starts_with($pageProfileImg, 'http') ? $pageProfileImg : '/storage/' . ltrim($pageProfileImg, '/')) : null;
 @endphp
 
-@if($pageProfileImgUrl)
+<div class="avatar-wrapper mb-3" style="display:flex; justify-content:center;">
+    <img src="{{ $pageProfileImgUrl ?? '' }}"
+         id="profilePreviewImg"
+         class="rounded-circle"
+         alt="Profile Image"
+         style="{{ empty($pageProfileImgUrl) ? 'display:none;' : 'display:block;' }}"
+         onerror="this.style.display='none'; document.getElementById('profileDefaultPlaceholder').style.display='flex';">
 
-    <img src="{{ $pageProfileImgUrl }}"
-         width="150"
-         height="150"
-         class="rounded-circle mb-3"
-         style="object-fit: cover;"
-         onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
-
-@else
-
-    <img src="https://via.placeholder.com/150"
-         width="150"
-         height="150"
-         class="rounded-circle mb-3">
-
-@endif
+    <div id="profileDefaultPlaceholder"
+         class="profile-placeholder-circle"
+         style="{{ !empty($pageProfileImgUrl) ? 'display:none;' : 'display:flex;' }}">
+        <i class="fa-solid fa-user"></i>
+    </div>
+</div>
 
 
 
@@ -517,7 +579,21 @@ p{
 
 <div class="card-body">
 
+@if(session('success'))
+    <div style="background: rgba(255,255,255,0.95); color: #2e7d32; padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; text-align: center;">
+        ✓ {{ session('success') }}
+    </div>
+@endif
 
+@if($errors->any())
+    <div style="background: rgba(255,255,255,0.95); color: #c62828; padding: 12px 16px; border-radius: 12px; margin-bottom: 20px;">
+        <ul style="margin: 0; padding-left: 20px;">
+            @foreach($errors->all() as $err)
+                <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
 <form action="{{ route('profile.update',$user->id) }}"
       method="POST"
@@ -562,6 +638,9 @@ p{
 
 <input type="file"
        name="image"
+       id="imageInput"
+       accept="image/*"
+       onchange="previewProfileImage(this)"
        class="form-control">
 
 
@@ -680,6 +759,26 @@ back to main
 
 </div>
 
+<script>
+function previewProfileImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('profilePreviewImg');
+            const placeholder = document.getElementById('profileDefaultPlaceholder');
+            if (img) {
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>
 
 </body>
 </html>
