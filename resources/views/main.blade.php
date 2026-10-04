@@ -2448,6 +2448,90 @@ let currentFriendName = null;
 let currentFriendNumberId = null;
 let currentFriendData = null;
 
+/* =========================================================
+   SESSION STORAGE MANAGER
+========================================================= */
+
+const ChatSession = {
+    KEY_ACTIVE: 'chat_active_conversation',
+    KEY_DRAFT_PREFIX: 'chat_draft_',
+    KEY_USER_ID: 'chat_auth_user_id',
+
+    init() {
+        try {
+            const storedUser = sessionStorage.getItem(this.KEY_USER_ID);
+            if (storedUser && storedUser !== String(MY_USER_ID)) {
+                this.clear();
+            }
+            sessionStorage.setItem(this.KEY_USER_ID, String(MY_USER_ID));
+        } catch (e) {
+            console.warn('SessionStorage unavailable:', e);
+        }
+    },
+
+    saveActive(data) {
+        try {
+            sessionStorage.setItem(this.KEY_ACTIVE, JSON.stringify(data));
+        } catch (e) {}
+    },
+
+    getActive() {
+        try {
+            const raw = sessionStorage.getItem(this.KEY_ACTIVE);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    clearActive() {
+        try {
+            sessionStorage.removeItem(this.KEY_ACTIVE);
+        } catch (e) {}
+    },
+
+    saveDraft(key, text) {
+        try {
+            if (!key) return;
+            const fullKey = this.KEY_DRAFT_PREFIX + key;
+            if (text && text.trim().length > 0) {
+                sessionStorage.setItem(fullKey, text);
+            } else {
+                sessionStorage.removeItem(fullKey);
+            }
+        } catch (e) {}
+    },
+
+    getDraft(key) {
+        try {
+            if (!key) return '';
+            return sessionStorage.getItem(this.KEY_DRAFT_PREFIX + key) || '';
+        } catch (e) {
+            return '';
+        }
+    },
+
+    clearDraft(key) {
+        try {
+            if (!key) return;
+            sessionStorage.removeItem(this.KEY_DRAFT_PREFIX + key);
+        } catch (e) {}
+    },
+
+    clear() {
+        try {
+            sessionStorage.removeItem(this.KEY_ACTIVE);
+            Object.keys(sessionStorage).forEach(k => {
+                if (k.startsWith(this.KEY_DRAFT_PREFIX)) {
+                    sessionStorage.removeItem(k);
+                }
+            });
+        } catch (e) {}
+    }
+};
+
+ChatSession.init();
+
 const csrfToken =
     document
         .querySelector('meta[name="csrf-token"]')
@@ -2575,6 +2659,7 @@ function closeMobileChat()
     currentFriendNumberId = null;
     currentFriendData = null;
     closeProfileModal();
+    ChatSession.clearActive();
 }
 
 
@@ -2637,6 +2722,12 @@ function openGroupChat(groupId, groupName)
     selectedGroup = groupId;
     selectedChat = null;
     currentGroupName = groupName;
+
+    ChatSession.saveActive({
+        type: 'group',
+        groupId: groupId,
+        groupName: groupName
+    });
 
     renderedMessageIds.clear();
 
@@ -2737,6 +2828,19 @@ function openGroupChat(groupId, groupName)
 
         </div>
     `;
+
+    const groupInput = document.getElementById('messageInput');
+    if (groupInput) {
+        const savedDraft = ChatSession.getDraft('group_' + selectedGroup);
+        if (savedDraft) {
+            groupInput.value = savedDraft;
+        }
+        groupInput.addEventListener('input', function () {
+            if (selectedGroup) {
+                ChatSession.saveDraft('group_' + selectedGroup, this.value);
+            }
+        });
+    }
 
     /*
      * Ask Laravel for group + messages.
@@ -2930,6 +3034,14 @@ function openChat(id, name, number_id, avatarUrl = null)
     currentFriendAvatar = avatarUrl || null;
     currentFriendData = null;
 
+    ChatSession.saveActive({
+        type: 'private',
+        id: Number(id),
+        name: name,
+        number_id: number_id,
+        avatarUrl: avatarUrl
+    });
+
     selectedGroup = null;
 
     selectedChat = null;
@@ -3011,6 +3123,19 @@ function openChat(id, name, number_id, avatarUrl = null)
         </div>
 
     `;
+
+    const privateInput = document.getElementById('messageInput');
+    if (privateInput) {
+        const savedDraft = ChatSession.getDraft('private_' + selectedUser);
+        if (savedDraft) {
+            privateInput.value = savedDraft;
+        }
+        privateInput.addEventListener('input', function () {
+            if (selectedUser) {
+                ChatSession.saveDraft('private_' + selectedUser, this.value);
+            }
+        });
+    }
 
 function openProfile(event)
 {
@@ -3382,6 +3507,7 @@ function sendMessage()
         }
 
         input.value = '';
+        ChatSession.clearDraft('private_' + selectedUser);
 
     })
 
@@ -4101,6 +4227,7 @@ function sendGroupMessage()
 
 
         input.value = '';
+        ChatSession.clearDraft('group_' + selectedGroup);
 
 
         /*
@@ -4686,6 +4813,28 @@ console.log(
     'Current user ID:',
     MY_USER_ID
 );
+
+/* =========================================================
+   SESSION RESTORATION ON PAGE LOAD
+========================================================= */
+
+function restoreChatSession() {
+    ChatSession.init();
+    const active = ChatSession.getActive();
+    if (active) {
+        if (active.type === 'private' && active.id) {
+            openChat(active.id, active.name, active.number_id, active.avatarUrl);
+        } else if (active.type === 'group' && active.groupId) {
+            openGroupChat(active.groupId, active.groupName);
+        }
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', restoreChatSession);
+} else {
+    restoreChatSession();
+}
 
 </script>
 
