@@ -355,6 +355,53 @@
         }
 
         /* =========================================
+           ACTIONS
+        ========================================= */
+
+        .profile-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .profile-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .profile-action-btn.primary {
+            background: linear-gradient(135deg, #d98686, #b85f5f);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(184, 95, 95, 0.3);
+        }
+
+        .profile-action-btn.primary:hover {
+            opacity: 0.92;
+            transform: translateY(-2px);
+        }
+
+        .profile-action-btn.secondary {
+            background: #fff;
+            color: #b85f5f;
+            border: 1px solid #e5b3b3;
+        }
+
+        .profile-action-btn.secondary:hover {
+            background: #fdf5f5;
+            transform: translateY(-2px);
+        }
+
+        /* =========================================
            FOOTER
         ========================================= */
 
@@ -417,55 +464,59 @@
 
 <body>
 
+@php
+    $displayName = $attibute->name ?? $user->name ?? 'User';
+    $displayEmail = $attibute->email ?? $user->email ?? 'Not provided';
+    $displayIdNumber = $attibute->id_number ?? $user->number_id ?? 'Not provided';
+    $displayUserId = $user->id ?? $attibute->user_id ?? $attibute->id ?? '-';
+    
+    $rawGender = $attibute->gender ?? null;
+    $genderText = 'Not provided';
+    if ($rawGender === 'M') {
+        $genderText = 'Male';
+    } elseif ($rawGender === 'F') {
+        $genderText = 'Female';
+    } elseif ($rawGender) {
+        $genderText = ucfirst($rawGender);
+    }
+
+    $rawImg = $attibute->image ?? null;
+    $imgUrl = $rawImg ? (str_starts_with($rawImg, 'http') ? $rawImg : '/storage/' . ltrim($rawImg, '/')) : null;
+    $initialChar = strtoupper(substr($displayName ?: 'U', 0, 1));
+@endphp
+
 <div class="container">
 
-
-    <!-- =========================================
-         BACK BUTTON
-    ========================================== -->
-
+    <!-- BACK BUTTON -->
     <a
         href="{{ route('main') }}"
         class="back-btn"
     >
-        ← Back
+        ← Back to Chat
     </a>
 
-
-    <!-- =========================================
-         PROFILE CARD
-    ========================================== -->
-
+    <!-- PROFILE CARD -->
     <div class="profile-card">
 
-
-        <!-- =====================================
-             PROFILE HEADER
-        ====================================== -->
-
+        <!-- PROFILE HEADER -->
         <div class="profile-header">
-
 
             <div class="profile-image-wrapper">
 
-                @php
-                    $attRawImg = $attibute->image ?? null;
-                    $attImgUrl = $attRawImg ? (str_starts_with($attRawImg, 'http') ? $attRawImg : '/storage/' . ltrim($attRawImg, '/')) : null;
-                @endphp
-                @if(!empty($attImgUrl))
+                @if(!empty($imgUrl))
 
                     <img
-                        src="{{ $attImgUrl }}"
-                        alt="{{ $attibute->name }}"
+                        src="{{ $imgUrl }}"
+                        alt="{{ $displayName }}"
                         class="profile-image"
-                        onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<div class=\'profile-placeholder\'>{{ strtoupper(substr($attibute->name ?? 'U', 0, 1)) }}</div>'))"
+                        onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<div class=\'profile-placeholder\'>{{ $initialChar }}</div>'))"
                     >
 
                 @else
 
                     <div class="profile-placeholder">
 
-                        {{ strtoupper(substr($attibute->name ?? 'U', 0, 1)) }}
+                        {{ $initialChar }}
 
                     </div>
 
@@ -473,9 +524,8 @@
 
             </div>
 
-
             <h1>
-                {{ $attibute->name }}
+                {{ $displayName }}
             </h1>
 
             <p>
@@ -484,113 +534,76 @@
 
         </div>
 
-
-        <!-- =====================================
-             PROFILE INFORMATION
-        ====================================== -->
-
+        <!-- PROFILE INFORMATION -->
         <div class="profile-body">
-
 
             <div class="info-grid">
 
-
                 <!-- USER ID -->
-
                 <div class="info-box">
-
                     <span class="info-label">
                         User ID
                     </span>
-
                     <span class="info-value">
-                        #{{ $attibute->id }}
+                        #{{ $displayUserId }}
                     </span>
-
                 </div>
 
-
                 <!-- ID NUMBER -->
-
                 <div class="info-box">
-
                     <span class="info-label">
                         ID Number
                     </span>
-
                     <span class="info-value">
-                        {{ $attibute->id_number ?? 'Not provided' }}
+                        {{ $displayIdNumber }}
                     </span>
-
                 </div>
 
-
                 <!-- EMAIL -->
-
                 <div class="info-box">
-
                     <span class="info-label">
                         Email
                     </span>
-
                     <span class="info-value">
-                        {{ $attibute->email ?? 'Not provided' }}
+                        {{ $displayEmail }}
                     </span>
-
                 </div>
 
-
                 <!-- GENDER -->
-
                 <div class="info-box">
-
                     <span class="info-label">
                         Gender
                     </span>
-
                     <span class="info-value">
-                        {{ $attibute->gender ?? 'Not provided' }}
+                        {{ $genderText }}
                     </span>
-
                 </div>
-
 
             </div>
 
-
-            <!-- =================================
-                 DESCRIPTION
-            ================================== -->
-
+            <!-- DESCRIPTION -->
             <div class="description-box">
-
                 <span class="description-label">
                     About
                 </span>
-
                 <div class="description">
-
                     {{ $attibute->description ?? 'No description provided.' }}
-
                 </div>
-
             </div>
 
+            <!-- ACTIONS -->
+            <div class="profile-actions">
+                <a href="{{ route('main') }}" class="profile-action-btn primary">
+                    💬 Open Messages
+                </a>
+            </div>
 
         </div>
 
-
-        <!-- =====================================
-             FOOTER
-        ====================================== -->
-
+        <!-- FOOTER -->
         <div class="profile-footer">
-
-            Profile ID:
-            {{ $attibute->id }}
-
+            ID: {{ $displayIdNumber }}
         </div>
-
 
     </div>
 

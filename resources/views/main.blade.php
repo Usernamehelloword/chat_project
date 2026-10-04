@@ -2028,12 +2028,22 @@
 
                             <div class="friend-actions">
 
-                                <a
-                                    href="{{ route('attibutes', $item->friend->id) }}"
+                                <button
+                                    type="button"
                                     class="action-btn profile-btn"
+                                    title="View Profile"
+                                    onclick="showProfileModal({{ json_encode([
+                                        'name' => $item->friend->name,
+                                        'number_id' => $item->friend->number_id ?? $item->friend->id,
+                                        'email' => $item->friend->email,
+                                        'gender' => $item->friend->profile?->gender,
+                                        'description' => $item->friend->profile?->description,
+                                        'image' => $item->friend->profile?->image,
+                                        'user_id' => $item->friend->id,
+                                    ]) }})"
                                 >
                                     👤
-                                </a>
+                                </button>
 
 
                                 <form
@@ -2117,12 +2127,22 @@
 
                             <div class="friend-actions">
 
-                                <a
-                                    href="{{ route('attibutes', $item->user->id) }}"
+                                <button
+                                    type="button"
                                     class="action-btn profile-btn"
+                                    title="View Profile"
+                                    onclick="showProfileModal({{ json_encode([
+                                        'name' => $item->user->name,
+                                        'number_id' => $item->user->number_id ?? $item->user->id,
+                                        'email' => $item->user->email,
+                                        'gender' => $item->user->profile?->gender,
+                                        'description' => $item->user->profile?->description,
+                                        'image' => $item->user->profile?->image,
+                                        'user_id' => $item->user->id,
+                                    ]) }})"
                                 >
                                     👤
-                                </a>
+                                </button>
 
 
                                 <form
@@ -3005,25 +3025,26 @@ function openProfile(event)
     showProfileModal();
 }
 
-function showProfileModal()
+function showProfileModal(customData = null)
 {
     const modal = document.getElementById('profileModal');
     if (!modal) return;
 
-    const name = currentFriendData?.name || currentFriendName || 'Friend';
-    const numberId = currentFriendData?.number_id || currentFriendNumberId || selectedUser;
-    const email = currentFriendData?.email || 'Not available';
+    const data = customData || currentFriendData;
+    const name = data?.name || currentFriendName || 'Friend';
+    const numberId = data?.number_id || data?.id_number || currentFriendNumberId || selectedUser || '-';
+    const email = data?.email || 'Not available';
     
     let gender = 'Not set';
-    const rawGender = currentFriendData?.profile?.gender;
+    const rawGender = data?.profile?.gender || data?.gender;
     if (rawGender === 'M') gender = 'Male';
     else if (rawGender === 'F') gender = 'Female';
     else if (rawGender) gender = rawGender;
 
-    const desc = currentFriendData?.profile?.description || 'No description provided.';
+    const desc = data?.profile?.description || data?.description || 'No description provided.';
     
     let avatar = null;
-    const rawImg = currentFriendData?.profile?.image;
+    const rawImg = data?.profile?.image || data?.image;
     if (rawImg) {
         avatar = rawImg.startsWith('http')
             ? rawImg
@@ -3031,6 +3052,8 @@ function showProfileModal()
     } else {
         avatar = currentFriendAvatar;
     }
+
+    const userId = data?.user_id || data?.id || selectedUser;
 
     document.getElementById('modalProfileName').textContent = name;
     document.getElementById('modalProfileId').textContent = 'ID: ' + numberId;
@@ -3056,7 +3079,9 @@ function showProfileModal()
 
     const fullPageBtn = document.getElementById('modalFullProfileBtn');
     if (fullPageBtn) {
-        const fullUrl = "{{ route('attibutes', ['id' => '__ID__']) }}".replace('__ID__', selectedUser);
+        const fullUrl = userId
+            ? "{{ route('attibutes', ['id' => '__ID__']) }}".replace('__ID__', userId)
+            : '#';
         fullPageBtn.href = fullUrl;
     }
 
