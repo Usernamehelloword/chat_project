@@ -11,7 +11,7 @@ use App\Models\Addfriend;
 use App\Models\Groupconnect;
 use App\Models\Groupid;
 
-class Authcontroller extends Controller
+class AuthController extends Controller
 {
    
 
