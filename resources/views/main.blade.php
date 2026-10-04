@@ -13,6 +13,8 @@
 
     <title>Chat App</title>
 
+    @vite(['resources/js/app.js'])
+
     <style>
 
         /* =========================================================
@@ -3456,16 +3458,16 @@ function sendGroupMessage()
    PRIVATE WEBSOCKET
 ========================================================= */
 
-function startPrivateWebsocket(chatId)
+function startPrivateWebsocket(chatId, retryCount = 0)
 {
-    if (
-        typeof Echo === 'undefined'
-    ) {
+    if (typeof Echo === 'undefined') {
+        if (retryCount < 10) {
+            console.warn(`Laravel Echo initializing, retrying private websocket connection (${retryCount + 1}/10)...`);
+            setTimeout(() => startPrivateWebsocket(chatId, retryCount + 1), 250);
+            return;
+        }
 
-        console.warn(
-            'Laravel Echo is not loaded.'
-        );
-
+        console.warn('Laravel Echo is not loaded.');
         return;
     }
 
@@ -3511,9 +3513,14 @@ function startPrivateWebsocket(chatId)
    GROUP WEBSOCKET
 ========================================================= */
 
-function startGroupWebsocket(groupId)
+function startGroupWebsocket(groupId, retryCount = 0)
 {
     if (typeof Echo === 'undefined') {
+        if (retryCount < 10) {
+            console.warn(`Laravel Echo initializing, retrying group websocket connection (${retryCount + 1}/10)...`);
+            setTimeout(() => startGroupWebsocket(groupId, retryCount + 1), 250);
+            return;
+        }
 
         console.error('Laravel Echo is NOT loaded.');
 

@@ -74,13 +74,13 @@ class PrivateChatController extends Controller
               ->where('friend_id',$user1);
         })
         ->first();
-        if($chat)
-        {
-            return $chat->chat_id;
+        if ($chat) {
+            return (int) $chat->chat_id;
         }
 
-        return time();
-
+        $min = min($user1, $user2);
+        $max = max($user1, $user2);
+        return (int) ($min * 100000 + $max);
     }
 
 

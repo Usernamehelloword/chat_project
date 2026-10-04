@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Broadcast;
 use App\Models\Groupconnect;
+use App\Models\Groupid;
+use App\Models\Textprivaye;
 
 /*
 |--------------------------------------------------------------------------
@@ -9,7 +11,22 @@ use App\Models\Groupconnect;
 |--------------------------------------------------------------------------
 */
 Broadcast::channel('chat.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+    if ((int) $user->id === (int) $id) {
+        return true;
+    }
+
+    $isMember = Textprivaye::where('chat_id', $id)
+        ->where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('friend_id', $user->id);
+        })
+        ->exists();
+
+    if ($isMember) {
+        return true;
+    }
+
+    return !empty($user);
 });
 
 
@@ -18,9 +35,6 @@ Broadcast::channel('chat.{id}', function ($user, $id) {
 | Group chat
 |--------------------------------------------------------------------------
 */
-use App\Models\Groupid;
-
-
 Broadcast::channel(
     'group-chat.{groupId}',
     function ($user, $groupId) {
