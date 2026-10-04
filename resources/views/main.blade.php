@@ -1584,6 +1584,202 @@
             }
         }
 
+        /* =========================================================
+           PROFILE MODAL
+        ========================================================= */
+
+        .profile-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .profile-modal-overlay.active {
+            display: flex;
+        }
+
+        .profile-modal-card {
+            position: relative;
+            width: 100%;
+            max-width: 380px;
+            background: linear-gradient(145deg, #ffffff, #fdf5f5);
+            border-radius: 24px;
+            padding: 28px 24px 24px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-sizing: border-box;
+        }
+
+        .profile-modal-close {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 50%;
+            font-size: 20px;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .profile-modal-close:hover {
+            background: rgba(0, 0, 0, 0.12);
+            color: #111;
+        }
+
+        .profile-modal-avatar-wrap {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 14px;
+            position: relative;
+        }
+
+        .profile-modal-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 20px rgba(217, 134, 134, 0.35);
+        }
+
+        .profile-modal-avatar-default {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d98686, #bd6262);
+            color: white;
+            font-size: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 20px rgba(217, 134, 134, 0.35);
+        }
+
+        .profile-modal-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .profile-modal-id {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 16px;
+        }
+
+        .profile-modal-divider {
+            height: 1px;
+            background: #eedede;
+            margin: 14px 0;
+        }
+
+        .profile-modal-details {
+            text-align: left;
+            background: rgba(245, 225, 225, 0.35);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 13.5px;
+        }
+
+        .profile-modal-row {
+            display: flex;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .profile-modal-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .profile-modal-label {
+            font-weight: bold;
+            color: #7a3e3e;
+            width: 75px;
+            flex-shrink: 0;
+        }
+
+        .profile-modal-value {
+            color: #444;
+            word-break: break-word;
+            flex: 1;
+        }
+
+        .profile-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .profile-modal-btn {
+            flex: 1;
+            padding: 11px 16px;
+            border-radius: 20px;
+            font-size: 13.5px;
+            font-weight: bold;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-modal-btn-primary {
+            background: linear-gradient(135deg, #d98686, #bd6262);
+            color: white;
+            box-shadow: 0 4px 12px rgba(189, 98, 98, 0.3);
+        }
+
+        .profile-modal-btn-primary:hover {
+            background: linear-gradient(135deg, #c76f6f, #aa5252);
+            transform: translateY(-1px);
+        }
+
+        .profile-modal-btn-secondary {
+            background: #eee;
+            color: #555;
+        }
+
+        .profile-modal-btn-secondary:hover {
+            background: #e2e2e2;
+            color: #222;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
     </style>
 
 </head>
@@ -2167,8 +2363,40 @@
 
         </div>
 
-    </div>
+</div>
 
+<!-- =====================================================
+     PROFILE INFO MODAL
+====================================================== -->
+<div id="profileModal" class="profile-modal-overlay" onclick="closeProfileModal(event)">
+    <div class="profile-modal-card" onclick="event.stopPropagation()">
+        <button type="button" class="profile-modal-close" onclick="closeProfileModal()">&times;</button>
+        <div class="profile-modal-avatar-wrap">
+            <img id="modalProfileImg" src="" alt="Profile Image" class="profile-modal-avatar" style="display:none;">
+            <div id="modalProfileDefault" class="profile-modal-avatar-default">👤</div>
+        </div>
+        <h3 id="modalProfileName" class="profile-modal-name">User</h3>
+        <p id="modalProfileId" class="profile-modal-id">ID: -</p>
+        <div class="profile-modal-divider"></div>
+        <div class="profile-modal-details">
+            <div class="profile-modal-row">
+                <span class="profile-modal-label">Email:</span>
+                <span id="modalProfileEmail" class="profile-modal-value">-</span>
+            </div>
+            <div class="profile-modal-row">
+                <span class="profile-modal-label">Gender:</span>
+                <span id="modalProfileGender" class="profile-modal-value">Not set</span>
+            </div>
+            <div class="profile-modal-row">
+                <span class="profile-modal-label">Bio:</span>
+                <span id="modalProfileDesc" class="profile-modal-value">No description</span>
+            </div>
+        </div>
+        <div class="profile-modal-actions">
+            <a id="modalFullProfileBtn" href="#" class="profile-modal-btn profile-modal-btn-primary">View Full Profile</a>
+            <button type="button" class="profile-modal-btn profile-modal-btn-secondary" onclick="closeProfileModal()">Close</button>
+        </div>
+    </div>
 </div>
 
 
@@ -2196,6 +2424,9 @@ const CURRENT_USER_AVATAR = @js($myAvatarUrl);
 const CURRENT_USER_NAME = @js($user->name);
 const STORAGE_URL = '/storage';
 let currentFriendAvatar = null;
+let currentFriendName = null;
+let currentFriendNumberId = null;
+let currentFriendData = null;
 
 const csrfToken =
     document
@@ -2320,6 +2551,10 @@ function closeMobileChat()
     selectedChat = null;
     currentGroupName = null;
     currentFriendAvatar = null;
+    currentFriendName = null;
+    currentFriendNumberId = null;
+    currentFriendData = null;
+    closeProfileModal();
 }
 
 
@@ -2670,14 +2905,16 @@ function openChat(id, name, number_id, avatarUrl = null)
     leavePrivateChannel();
 
     selectedUser = Number(id);
+    currentFriendName = name;
+    currentFriendNumberId = number_id;
+    currentFriendAvatar = avatarUrl || null;
+    currentFriendData = null;
 
     selectedGroup = null;
 
     selectedChat = null;
 
     currentGroupName = null;
-
-    currentFriendAvatar = avatarUrl || null;
 
     renderedMessageIds.clear();
 
@@ -2693,17 +2930,17 @@ function openChat(id, name, number_id, avatarUrl = null)
     document.body.classList.add('chat-open');
 
     const headerAvatar = avatarUrl
-        ? `<img src="${avatarUrl}" class="chat-header-avatar" style="object-fit:cover;cursor:pointer;" onclick="openProfile()" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<button type=\\'button\\' class=\\'chat-header-avatar\\' onclick=\\'openProfile()\\'>👤</button>'))">`
-        : `<button type="button" class="chat-header-avatar" onclick="openProfile()">👤</button>`;
+        ? `<img src="${avatarUrl}" class="chat-header-avatar" style="object-fit:cover;cursor:pointer;" onclick="openProfile(event)" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<button type=\\'button\\' class=\\'chat-header-avatar\\' onclick=\\'openProfile(event)\\'>👤</button>'))">`
+        : `<button type="button" class="chat-header-avatar" onclick="openProfile(event)">👤</button>`;
 
     chatArea.innerHTML = `
 
-        <div class="chat-header">
+        <div class="chat-header" onclick="openProfile(event)" style="cursor:pointer;" title="Tap to view profile">
 
             <button
                 type="button"
                 class="chat-back"
-                onclick="closeMobileChat()"
+                onclick="event.stopPropagation(); closeMobileChat();"
             >
                 ←
             </button>
@@ -2715,7 +2952,7 @@ function openChat(id, name, number_id, avatarUrl = null)
                 </div>
 
                 <div class="chat-header-status">
-                    Private chat
+                    Private chat • Tap to view profile
                 </div>
 
             </div>
@@ -2754,12 +2991,87 @@ function openChat(id, name, number_id, avatarUrl = null)
         </div>
 
     `;
-function openProfile()
-{
-    const profileUrl = "{{ route('attibutes', ['id' => '__ID__']) }}"
-        .replace('__ID__', selectedUser);
 
-    window.location.href = profileUrl;
+function openProfile(event)
+{
+    if (event) {
+        event.stopPropagation();
+    }
+
+    if (!selectedUser) {
+        return;
+    }
+
+    showProfileModal();
+}
+
+function showProfileModal()
+{
+    const modal = document.getElementById('profileModal');
+    if (!modal) return;
+
+    const name = currentFriendData?.name || currentFriendName || 'Friend';
+    const numberId = currentFriendData?.number_id || currentFriendNumberId || selectedUser;
+    const email = currentFriendData?.email || 'Not available';
+    
+    let gender = 'Not set';
+    const rawGender = currentFriendData?.profile?.gender;
+    if (rawGender === 'M') gender = 'Male';
+    else if (rawGender === 'F') gender = 'Female';
+    else if (rawGender) gender = rawGender;
+
+    const desc = currentFriendData?.profile?.description || 'No description provided.';
+    
+    let avatar = null;
+    const rawImg = currentFriendData?.profile?.image;
+    if (rawImg) {
+        avatar = rawImg.startsWith('http')
+            ? rawImg
+            : '/storage/' + rawImg.replace(/^\/+/, '');
+    } else {
+        avatar = currentFriendAvatar;
+    }
+
+    document.getElementById('modalProfileName').textContent = name;
+    document.getElementById('modalProfileId').textContent = 'ID: ' + numberId;
+    document.getElementById('modalProfileEmail').textContent = email;
+    document.getElementById('modalProfileGender').textContent = gender;
+    document.getElementById('modalProfileDesc').textContent = desc;
+
+    const img = document.getElementById('modalProfileImg');
+    const placeholder = document.getElementById('modalProfileDefault');
+
+    if (avatar) {
+        img.src = avatar;
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
+        img.onerror = function() {
+            img.style.display = 'none';
+            placeholder.style.display = 'flex';
+        };
+    } else {
+        img.style.display = 'none';
+        placeholder.style.display = 'flex';
+    }
+
+    const fullPageBtn = document.getElementById('modalFullProfileBtn');
+    if (fullPageBtn) {
+        const fullUrl = "{{ route('attibutes', ['id' => '__ID__']) }}".replace('__ID__', selectedUser);
+        fullPageBtn.href = fullUrl;
+    }
+
+    modal.classList.add('active');
+}
+
+function closeProfileModal(event)
+{
+    if (event && event.target !== event.currentTarget) {
+        return;
+    }
+    const modal = document.getElementById('profileModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
 }
 
     /*
@@ -2871,6 +3183,15 @@ function openProfile()
     })
 
     .then(data => {
+
+        if (data.friend) {
+            currentFriendData = data.friend;
+            if (data.friend.profile?.image) {
+                currentFriendAvatar = data.friend.profile.image.startsWith('http')
+                    ? data.friend.profile.image
+                    : '/storage/' + data.friend.profile.image.replace(/^\/+/, '');
+            }
+        }
 
         selectedChat =
             data.chat_id ?? null;
@@ -4266,6 +4587,11 @@ document.addEventListener(
     'keydown',
     function(event)
     {
+
+        if (event.key === 'Escape') {
+            closeProfileModal();
+            return;
+        }
 
         if (
             event.key !== 'Enter' ||

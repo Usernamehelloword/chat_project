@@ -23,9 +23,12 @@ class PrivateChatController extends Controller
             ->orderBy('created_at','asc')
             ->get();
 
+        $friend = \App\Models\User::with('profile')->find($request->friend_id);
+
         return response()->json([
             'chat_id'=>$chatId,
-            'messages'=>$messages
+            'messages'=>$messages,
+            'friend'=>$friend
         ]);
     }
 
