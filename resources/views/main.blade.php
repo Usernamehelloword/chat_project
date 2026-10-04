@@ -1615,12 +1615,23 @@
 
     <div class="sidebar-header">
 
-        @if($user->profile?->image)
+        @php
+            $myRawImage = $user->profile?->image ?? $profile?->image ?? null;
+            $myAvatarUrl = null;
+            if ($myRawImage) {
+                $myAvatarUrl = str_starts_with($myRawImage, 'http')
+                    ? $myRawImage
+                    : '/storage/' . ltrim($myRawImage, '/');
+            }
+        @endphp
+
+        @if($myAvatarUrl)
 
             <img
-                src="{{ asset('storage/'.$user->profile->image) }}"
+                src="{{ $myAvatarUrl }}"
                 class="sidebar-avatar"
                 alt="Profile"
+                onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<div class=\'sidebar-default-avatar\'>👤</div>'))"
             >
 
         @else
@@ -1772,21 +1783,26 @@
 
                         <div class="user-friends">
 
+                            @php
+                                $fRaw = $item->friend->profile?->image ?? null;
+                                $fImg = $fRaw ? (str_starts_with($fRaw, 'http') ? $fRaw : '/storage/' . ltrim($fRaw, '/')) : null;
+                            @endphp
                             <div
                                 class="friend-click"
                                 onclick="openChat(
                                     '{{ $item->friend->id }}',
                                     @js($item->friend->name),
                                     '{{ $item->friend->number_id }}',
-                                    @js($item->friend->profile?->image ? asset('storage/'.$item->friend->profile->image) : null)
+                                    @js($fImg)
                                 )"
                             >
 
-                                @if($item->friend->profile?->image)
+                                @if($fImg)
 
                                     <img
-                                        src="{{ asset('storage/'.$item->friend->profile->image) }}"
+                                        src="{{ $fImg }}"
                                         alt="Friend"
+                                        onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<div class=\'friend-avatar\'>👤</div>'))"
                                     >
 
                                 @else
@@ -1856,21 +1872,26 @@
 
                         <div class="user-friends">
 
+                            @php
+                                $uRaw = $item->user->profile?->image ?? null;
+                                $uImg = $uRaw ? (str_starts_with($uRaw, 'http') ? $uRaw : '/storage/' . ltrim($uRaw, '/')) : null;
+                            @endphp
                             <div
                                 class="friend-click"
                                 onclick="openChat(
                                     '{{ $item->user->id }}',
                                     @js($item->user->name),
                                     '{{ $item->user->number_id }}',
-                                    @js($item->user->profile?->image ? asset('storage/'.$item->user->profile->image) : null)
+                                    @js($uImg)
                                 )"
                             >
 
-                                @if($item->user->profile?->image)
+                                @if($uImg)
 
                                     <img
-                                        src="{{ asset('storage/'.$item->user->profile->image) }}"
+                                        src="{{ $uImg }}"
                                         alt="Friend"
+                                        onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<div class=\'friend-avatar\'>👤</div>'))"
                                     >
 
                                 @else
@@ -2049,21 +2070,26 @@
 
                 @forelse($users as $searchUser)
 
+                    @php
+                        $sRaw = $searchUser->profile?->image ?? null;
+                        $sImg = $sRaw ? (str_starts_with($sRaw, 'http') ? $sRaw : '/storage/' . ltrim($sRaw, '/')) : null;
+                    @endphp
                     <div
                         class="user-card"
                         onclick="openChat(
                             '{{ $searchUser->id }}',
                             @js($searchUser->name),
                             '{{ $searchUser->number_id }}',
-                            @js($searchUser->profile?->image ? asset('storage/'.$searchUser->profile->image) : null)
+                            @js($sImg)
                         )"
                     >
 
-                        @if($searchUser->profile?->image)
+                        @if($sImg)
 
                             <img
-                                src="{{ asset('storage/'.$searchUser->profile->image) }}"
+                                src="{{ $sImg }}"
                                 alt="User"
+                                onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<div class=\'friend-avatar\'>👤</div>'))"
                             >
 
                         @else
@@ -2166,9 +2192,9 @@ let groupPollTimer = null;
 let renderedMessageIds = new Set();
 
 const MY_USER_ID = Number({{ auth()->id() }});
-const CURRENT_USER_AVATAR = @js($user->profile?->image ? asset('storage/'.$user->profile->image) : null);
+const CURRENT_USER_AVATAR = @js($myAvatarUrl);
 const CURRENT_USER_NAME = @js($user->name);
-const STORAGE_URL = @js(asset('storage'));
+const STORAGE_URL = '/storage';
 let currentFriendAvatar = null;
 
 const csrfToken =
@@ -2667,7 +2693,7 @@ function openChat(id, name, number_id, avatarUrl = null)
     document.body.classList.add('chat-open');
 
     const headerAvatar = avatarUrl
-        ? `<img src="${avatarUrl}" class="chat-header-avatar" style="object-fit:cover;cursor:pointer;" onclick="openProfile()" alt="${escapeHtml(name)}">`
+        ? `<img src="${avatarUrl}" class="chat-header-avatar" style="object-fit:cover;cursor:pointer;" onclick="openProfile()" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<button type=\\'button\\' class=\\'chat-header-avatar\\' onclick=\\'openProfile()\\'>👤</button>'))">`
         : `<button type="button" class="chat-header-avatar" onclick="openProfile()">👤</button>`;
 
     chatArea.innerHTML = `
@@ -4180,14 +4206,26 @@ function showMessage(message)
     let avatarSrc = null;
     if (mine) {
         const imgPath = message.user?.profile?.image;
-        avatarSrc = imgPath ? (STORAGE_URL + '/' + imgPath) : CURRENT_USER_AVATAR;
+        if (imgPath) {
+            avatarSrc = imgPath.startsWith('http')
+                ? imgPath
+                : (STORAGE_URL + '/' + imgPath.replace(/^\/+/, ''));
+        } else {
+            avatarSrc = CURRENT_USER_AVATAR;
+        }
     } else {
         const imgPath = message.user?.profile?.image;
-        avatarSrc = imgPath ? (STORAGE_URL + '/' + imgPath) : currentFriendAvatar;
+        if (imgPath) {
+            avatarSrc = imgPath.startsWith('http')
+                ? imgPath
+                : (STORAGE_URL + '/' + imgPath.replace(/^\/+/, ''));
+        } else {
+            avatarSrc = currentFriendAvatar;
+        }
     }
 
     const avatarHtml = avatarSrc
-        ? `<img src="${avatarSrc}" class="message-avatar-mini" alt="${escapeHtml(username)}">`
+        ? `<img src="${avatarSrc}" class="message-avatar-mini" alt="${escapeHtml(username)}" onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<div class=\\'message-avatar-mini-default\\'>👤</div>'))">`
         : `<div class="message-avatar-mini-default">👤</div>`;
 
     const timeString = formatMessageTime(message.created_at);

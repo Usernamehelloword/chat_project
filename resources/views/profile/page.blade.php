@@ -426,13 +426,19 @@ p{
 <div class="card-body text-center">
 
 
-@if($user->profile?->image)
+@php
+    $pageProfileImg = $user->profile?->image ?? null;
+    $pageProfileImgUrl = $pageProfileImg ? (str_starts_with($pageProfileImg, 'http') ? $pageProfileImg : '/storage/' . ltrim($pageProfileImg, '/')) : null;
+@endphp
 
-    <img src="{{ asset('storage/'.$user->profile->image) }}"
+@if($pageProfileImgUrl)
+
+    <img src="{{ $pageProfileImgUrl }}"
          width="150"
          height="150"
          class="rounded-circle mb-3"
-         style="object-fit: cover;">
+         style="object-fit: cover;"
+         onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
 
 @else
 

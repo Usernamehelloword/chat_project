@@ -28,17 +28,19 @@ fi
 
 # Ensure storage & bootstrap/cache permissions
 echo "Setting permissions for storage and bootstrap/cache..."
-mkdir -p /var/www/html/storage/framework/cache/data \
+mkdir -p /var/www/html/storage/app/public/profiles \
+         /var/www/html/storage/framework/cache/data \
          /var/www/html/storage/framework/sessions \
          /var/www/html/storage/framework/views \
          /var/www/html/storage/logs \
          /var/www/html/bootstrap/cache
 
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Recreate storage symlink cleanly
+rm -rf /var/www/html/public/storage
+ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
 
-# Create storage symlink
-php /var/www/html/artisan storage:link --force || true
+chown -R www-data:www-data /var/www/html/storage /var/www/html/public/storage /var/www/html/bootstrap/cache
+chmod -R 777 /var/www/html/storage /var/www/html/public/storage /var/www/html/bootstrap/cache
 
 # Run database migrations
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
@@ -59,9 +61,9 @@ if [ "${DB_CONNECTION:-sqlite}" = "sqlite" ]; then
     chmod 666 "$DB_PATH"
 fi
 
-# Ensure storage permissions for www-data
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Ensure storage permissions for www-data and nginx
+chown -R www-data:www-data /var/www/html/storage /var/www/html/public/storage /var/www/html/bootstrap/cache
+chmod -R 777 /var/www/html/storage /var/www/html/public/storage /var/www/html/bootstrap/cache
 
 # Cache config, routes, and views if in production
 if [ "${APP_ENV:-production}" = "production" ]; then

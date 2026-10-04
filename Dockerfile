@@ -65,9 +65,10 @@ COPY --from=frontend-builder /app/public/build ./public/build
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Create necessary directories and configure permissions
-RUN mkdir -p /var/log/supervisor /var/run /var/www/html/storage /var/www/html/bootstrap/cache \
+RUN adduser nginx www-data \
+    && mkdir -p /var/log/supervisor /var/run /var/www/html/storage/app/public/profiles /var/www/html/bootstrap/cache \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+    && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Expose Render default web service port
 EXPOSE 10000

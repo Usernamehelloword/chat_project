@@ -12,7 +12,7 @@ class ProfileController extends Controller
 
     public function view_profile()
     {
-        $user = auth()->user();
+        $user = auth()->user()->load('profile');
 
         return view('profile.page', compact('user'));
     }
@@ -36,10 +36,16 @@ class ProfileController extends Controller
 
 
 
-        // find profile using user_id
+        // find or create profile using user_id
 
-        $profile = Profiles::where('user_id', $id)
-                    ->firstOrFail();
+        $profile = Profiles::firstOrCreate(
+            ['user_id' => $id],
+            [
+                'name' => auth()->user()->name ?? 'User',
+                'email' => auth()->user()->email ?? '',
+                'id_number' => auth()->user()->number_id ?? random_int(100000, 999999),
+            ]
+        );
 
 
 
@@ -88,10 +94,11 @@ class ProfileController extends Controller
 
 
         // update profile
-
         $profile->update($data);
 
-
+        if (!empty($request->name)) {
+            auth()->user()->update(['name' => $request->name]);
+        }
 
         return redirect()
             ->back()

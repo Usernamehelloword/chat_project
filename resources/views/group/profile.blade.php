@@ -448,12 +448,17 @@
 
             <div class="profile-image-wrapper">
 
-                @if(!empty($attibute->image))
+                @php
+                    $attRawImg = $attibute->image ?? null;
+                    $attImgUrl = $attRawImg ? (str_starts_with($attRawImg, 'http') ? $attRawImg : '/storage/' . ltrim($attRawImg, '/')) : null;
+                @endphp
+                @if(!empty($attImgUrl))
 
                     <img
-                        src="{{ asset('storage/' . $attibute->image) }}"
+                        src="{{ $attImgUrl }}"
                         alt="{{ $attibute->name }}"
                         class="profile-image"
+                        onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('<div class=\'profile-placeholder\'>{{ strtoupper(substr($attibute->name ?? 'U', 0, 1)) }}</div>'))"
                     >
 
                 @else

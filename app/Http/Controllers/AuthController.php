@@ -22,13 +22,13 @@ public function view(Request $request)
     // LOGGED-IN USER
   
 
-    $user = User::findOrFail(Auth::id());
+    $user = User::with('profile')->findOrFail(Auth::id());
 
   
     // PROFILE
   
 
-    $profile = Profiles::where(
+    $profile = $user->profile ?? Profiles::where(
         'user_id',
         Auth::id()
     )->first();

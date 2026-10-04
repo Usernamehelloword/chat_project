@@ -25,7 +25,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 
     public function profile()
     {
-        return $this->hasOne(Profiles::class);
+        return $this->hasOne(Profiles::class, 'user_id', 'id');
     }
 
     protected $hidden = [
