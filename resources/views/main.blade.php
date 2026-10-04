@@ -32,6 +32,8 @@
         body {
             width: 100%;
             height: 100%;
+            height: 100dvh;
+            overscroll-behavior: none;
         }
 
         body {
@@ -136,19 +138,41 @@
 
 
         /* =========================================================
-           SIDEBAR
+           SIDEBAR & OVERLAY
         ========================================================= */
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background: rgba(0,0,0,.45);
+            backdrop-filter: blur(3px);
+            z-index: 2400;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s ease;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
 
         .sidebar {
             position: fixed;
 
-            left: -300px;
+            left: -320px;
             top: 0;
 
-            width: 280px;
+            width: 290px;
+            max-width: 85vw;
             height: 100vh;
+            height: 100dvh;
 
-            padding: 90px 25px 25px;
+            padding: max(80px, calc(env(safe-area-inset-top, 0px) + 65px)) 20px 25px;
 
             background:
                 linear-gradient(
@@ -161,12 +185,13 @@
 
             z-index: 2500;
 
-            transition: .4s ease;
+            transition: .35s cubic-bezier(.4, 0, .2, 1);
 
             box-shadow:
                 10px 0 35px rgba(0,0,0,.25);
 
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .sidebar.active {
@@ -284,12 +309,14 @@
         .container {
             width: 100%;
             height: 100vh;
+            height: 100dvh;
 
             display: flex;
 
             gap: 15px;
 
             padding: 15px;
+            box-sizing: border-box;
         }
 
 
@@ -300,7 +327,7 @@
         .left {
             width: 360px;
 
-            height: calc(100vh - 30px);
+            height: 100%;
 
             padding: 70px 15px 15px;
 
@@ -309,6 +336,7 @@
             flex-direction: column;
 
             min-width: 0;
+            box-sizing: border-box;
         }
 
 
@@ -799,7 +827,7 @@
         .right {
             flex: 1;
 
-            height: calc(100vh - 30px);
+            height: 100%;
 
             min-width: 0;
 
@@ -808,6 +836,7 @@
             display: flex;
 
             flex-direction: column;
+            box-sizing: border-box;
         }
 
 
@@ -1226,122 +1255,284 @@
         }
 
 
-        /* =========================================================
-           MOBILE
-        ========================================================= */
+        .group-delete-btn {
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(120, 20, 20, .35);
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: .2s;
+            white-space: nowrap;
+        }
 
-        @media (max-width: 900px) {
-
-            .left {
-                width: 310px;
-            }
-
+        .group-delete-btn:hover {
+            background: #8e3f3f;
         }
 
 
-        @media (max-width: 768px) {
+        /* =========================================================
+           RESPONSIVE DESIGN (TABLET & MOBILE)
+        ========================================================= */
 
+        @media (max-width: 992px) {
+            .container {
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .left {
+                width: 320px;
+                padding-top: 65px;
+            }
+        }
+
+        @media (max-width: 768px) {
             body {
                 overflow: hidden;
             }
 
             .container {
-                display: block;
+                display: flex;
+                flex-direction: column;
                 padding: 0;
+                height: 100%;
+                height: 100vh;
+                height: 100dvh;
+                position: relative;
             }
 
             .left {
                 width: 100%;
-
+                height: 100%;
                 height: 100vh;
-
-                padding:
-                    75px 10px 10px;
+                height: 100dvh;
+                padding: max(72px, calc(env(safe-area-inset-top, 0px) + 56px)) 12px max(15px, env(safe-area-inset-bottom, 0px));
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
+            /* Hide left list and menu button when chat is open on mobile */
+            body.chat-open .left {
+                display: none !important;
+            }
+
+            body.chat-open .menu-btn {
+                display: none !important;
+            }
+
+            .menu-btn {
+                top: max(14px, env(safe-area-inset-top, 0px));
+                left: 14px;
+                width: 44px;
+                height: 44px;
+                font-size: 22px;
+                border-radius: 13px;
+            }
+
+            .search-area {
+                margin-bottom: 12px;
+            }
+
+            .search-area form {
+                gap: 6px;
+            }
+
+            .search-area input {
+                height: 42px;
+                font-size: 16px; /* Prevents iOS auto-zoom */
+                border-radius: 12px;
+            }
+
+            .search-btn,
+            .clear-btn {
+                height: 42px;
+                padding: 0 12px;
+                font-size: 13px;
+                border-radius: 12px;
+            }
+
+            .panel {
+                padding: 10px;
+                border-radius: 16px;
+                margin-bottom: 10px;
+            }
+
+            .friend-list {
+                max-height: 45vh;
+                min-height: 140px;
+                flex: 1 1 auto;
+            }
+
+            .group-section {
+                max-height: 45vh;
+                min-height: 140px;
+                flex: 1 1 auto;
+                padding: 10px;
+                border-radius: 16px;
+            }
+
+            .user-friends,
+            .user-group {
+                padding: 8px 10px;
+                border-radius: 13px;
+                gap: 8px;
+            }
+
+            .user-friends img,
+            .friend-avatar,
+            .group-icon {
+                width: 42px;
+                height: 42px;
+                font-size: 18px;
+            }
+
+            .friend-name,
+            .group-name {
+                font-size: 13.5px;
+            }
+
+            .friend-actions {
+                display: flex;
+                gap: 4px;
+            }
+
+            .action-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+
+            /* Fullscreen Chat on Mobile */
             .right {
                 position: fixed;
-
                 top: 0;
                 left: 0;
-
+                right: 0;
+                bottom: 0;
                 width: 100%;
+                height: 100%;
                 height: 100vh;
-
-                padding: 10px;
-
+                height: 100dvh;
+                padding: max(8px, env(safe-area-inset-top, 0px)) 8px max(8px, env(safe-area-inset-bottom, 0px));
                 background:
                     linear-gradient(
                         135deg,
-                        #e7bcbc,
+                        #f1d3d3,
                         #d98686
                     );
-
                 z-index: 2000;
-
                 display: none;
+                flex-direction: column;
+                box-sizing: border-box;
             }
 
             .right.active {
                 display: flex;
             }
 
+            .chat-header {
+                min-height: 58px;
+                padding: 8px 12px;
+                gap: 10px;
+                border-radius: 14px;
+            }
+
             .chat-back {
                 display: flex;
-
                 align-items: center;
                 justify-content: center;
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+                border-radius: 10px;
+                flex-shrink: 0;
             }
 
-            .menu-btn {
-                top: 15px;
-                left: 15px;
-            }
-
-            .friend-list {
-                height: 40%;
-            }
-
-            .group-section {
-                flex: 1;
-            }
-
-            .message {
-                max-width: 85%;
-            }
-
-            .chat-input button {
-                width: 75px;
-            }
-
-            .search-area form {
-                gap: 5px;
-            }
-
-            .search-btn,
-            .clear-btn {
-                padding: 0 12px;
-            }
-        }
-
-
-        @media (max-width: 450px) {
-
-            .friend-actions {
-                display: none;
-            }
-
-            .search-area input {
-                font-size: 13px;
-            }
-
-            .search-btn,
-            .clear-btn {
-                font-size: 12px;
+            .chat-header-avatar {
+                width: 38px;
+                height: 38px;
+                font-size: 17px;
             }
 
             .chat-header-title {
                 font-size: 15px;
+            }
+
+            .chat-header-status {
+                font-size: 10.5px;
+            }
+
+            .group-edit-button {
+                padding: 6px 10px;
+                font-size: 11px;
+                border-radius: 10px;
+            }
+
+            .chat-box {
+                padding: 12px 10px;
+                margin-top: 8px;
+                border-radius: 16px;
+            }
+
+            .message {
+                max-width: 86%;
+                padding: 8px 12px;
+                border-radius: 15px;
+                font-size: 13.5px;
+            }
+
+            .message-text {
+                font-size: 13.5px;
+            }
+
+            .chat-input {
+                margin-top: 8px;
+                gap: 8px;
+            }
+
+            .chat-input input {
+                height: 44px;
+                padding: 0 15px;
+                font-size: 16px; /* Prevents auto zoom */
+                border-radius: 22px;
+            }
+
+            .chat-input button {
+                width: 72px;
+                height: 44px;
+                font-size: 13px;
+                border-radius: 22px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .left {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .action-btn {
+                width: 26px;
+                height: 26px;
+                font-size: 11px;
+            }
+
+            .search-btn,
+            .clear-btn {
+                padding: 0 9px;
+                font-size: 12px;
+            }
+
+            .chat-header-title {
+                font-size: 14px;
+            }
+
+            .message {
+                max-width: 90%;
             }
         }
 
@@ -1453,6 +1644,8 @@
     </div>
 
 </div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
 
 <!-- =========================================================
@@ -1765,12 +1958,14 @@
             'name' => $group->group_name
         ]) }}"
         method="POST"
+        onclick="event.stopPropagation()"
+        onsubmit="return confirm('Are you sure you want to delete this group?')"
     >
         @csrf
         @method('DELETE')
 
-        <button type="submit">
-            Delete Group
+        <button type="submit" class="group-delete-btn">
+            Delete
         </button>
     </form>
 
@@ -1971,19 +2166,59 @@ function stopGroupPolling()
 
 
 /* =========================================================
-   SIDEBAR
+   SIDEBAR & MOBILE NAVIGATION
 ========================================================= */
 
 function toggleSidebar()
 {
     const sidebar =
         document.getElementById('sidebar');
+    const overlay =
+        document.getElementById('sidebarOverlay');
 
     if (sidebar) {
-
         sidebar.classList.toggle('active');
-
     }
+    if (overlay) {
+        overlay.classList.toggle('active');
+    }
+}
+
+function closeMobileChat()
+{
+    const chatArea =
+        document.getElementById('chatArea');
+
+    if (chatArea) {
+        chatArea.classList.remove('active');
+        chatArea.innerHTML = `
+            <div class="empty-chat">
+                <div>
+                    <div class="empty-chat-icon">
+                        💬
+                    </div>
+                    <h2>
+                        Welcome to Chat
+                    </h2>
+                    <p>
+                        Select a friend or group<br>
+                        to start chatting.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    document.body.classList.remove('chat-open');
+
+    stopGroupPolling();
+    leaveGroupChannel();
+    leavePrivateChannel();
+
+    selectedUser = null;
+    selectedGroup = null;
+    selectedChat = null;
+    currentGroupName = null;
 }
 
 
@@ -2057,6 +2292,7 @@ function openGroupChat(groupId, groupName)
     }
 
     chatArea.classList.add('active');
+    document.body.classList.add('chat-open');
 
     /*
      * Generate edit URL
@@ -2351,6 +2587,7 @@ function openChat(id, name, number_id)
     }
 
     chatArea.classList.add('active');
+    document.body.classList.add('chat-open');
 
   
     chatArea.innerHTML = `
@@ -2786,6 +3023,7 @@ function openGroupChat(groupId, groupName)
     }
 
     chatArea.classList.add('active');
+    document.body.classList.add('chat-open');
 
 
     /* =====================================================
