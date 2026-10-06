@@ -12,8 +12,9 @@ class Groupchatmodel extends Model
         'group_name',
         'user_id',
         'message',
-        'group_id'
-      
+        'group_id',
+        'media_path',
+        'media_type',
     ];
 
   public function user()

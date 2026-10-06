@@ -16,49 +16,60 @@ class Kickcontroller extends Controller
 {
     public function remove_friend(int $id)
     {
-        Addfriend::where('user_id', Auth::id())
+        $authId = Auth::id();
+        Addfriend::where('user_id', $authId)
             ->where('friend_id', $id)
             ->delete();
-        Textprivaye::where('user_id', Auth::id())
+        Textprivaye::where('user_id', $authId)
             ->where('friend_id', $id)
             ->delete();
- 
+
+        // Invalidate friends cache for both users
+        \Illuminate\Support\Facades\Cache::forget("user_friends_{$authId}");
+        \Illuminate\Support\Facades\Cache::forget("user_friends_{$id}");
+
         return redirect()->back();
     }
+
     public function remove_from_group(int $id){
         Groupid::where('user_id', $id)->delete();
         Groupconnect::where('user_id', $id)->delete();
-          return redirect()->back();
 
+        \Illuminate\Support\Facades\Cache::forget("user_groups_{$id}");
+        \Illuminate\Support\Facades\Cache::forget("user_groups_" . Auth::id());
+
+        return redirect()->back();
     }
      
-public function remove_group(int $id, string $name)
-{
-    $group = Groupid::where('id', $id)->first();
+    public function remove_group(int $id, string $name)
+    {
+        $group = Groupid::where('id', $id)->first();
 
-    if (!$group) {
+        if (!$group) {
+            return redirect()
+                ->back()
+                ->with('error', 'Group not found.');
+        }
+
+        // ONLY OWNER
+        if ($group->user_id != Auth::id()) {
+            abort(403, 'You are not the owner of this group.');
+        }
+
+        Groupconnect::where('group_id', $id)->delete();
+
+        Groupchatmodel::where('group_name', $name)
+            ->where('user_id', Auth::id())
+            ->delete();
+
+        $group->delete();
+
+        \Illuminate\Support\Facades\Cache::forget("user_groups_" . Auth::id());
+
         return redirect()
-            ->back()
-            ->with('error', 'Group not found.');
+            ->route('main')
+            ->with('message', 'Group deleted successfully.');
     }
-
-    // ONLY OWNER
-    if ($group->user_id != Auth::id()) {
-        abort(403, 'You are not the owner of this group.');
-    }
-
-    Groupconnect::where('group_id', $id)->delete();
-
-    Groupchatmodel::where('group_name', $name)
-        ->where('user_id', Auth::id())
-        ->delete();
-
-    $group->delete();
-
-    return redirect()
-        ->route('main')
-        ->with('message', 'Group deleted successfully.');
-}
 
 
 // public function remove_group(int $id)

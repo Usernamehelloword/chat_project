@@ -609,6 +609,8 @@
 
 <body>
 
+@include('partials.loader')
+
 
     <!-- =========================
          BACK BUTTON

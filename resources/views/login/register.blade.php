@@ -300,6 +300,8 @@
 
 <body>
 
+@include('partials.loader')
+
 <div class="auth-wrapper">
 
     <div class="register-card">

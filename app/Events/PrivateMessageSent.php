@@ -35,7 +35,23 @@ class PrivateMessageSent implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'message' => $this->message,
+            'message' => [
+                'id' => $this->message->id,
+                'chat_id' => $this->message->chat_id,
+                'user_id' => $this->message->user_id,
+                'friend_id' => $this->message->friend_id,
+                'message' => $this->message->message,
+                'media_path' => $this->message->media_path,
+                'media_type' => $this->message->media_type,
+                'created_at' => $this->message->created_at,
+                'user' => [
+                    'id' => $this->message->user?->id,
+                    'name' => $this->message->user?->name,
+                    'profile' => [
+                        'image' => $this->message->user?->profile?->image,
+                    ],
+                ],
+            ],
         ];
     }
 }

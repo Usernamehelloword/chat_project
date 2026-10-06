@@ -464,6 +464,8 @@
 
 <body>
 
+@include('partials.loader')
+
 @php
     $displayName = $attibute->name ?? $user->name ?? 'User';
     $displayEmail = $attibute->email ?? $user->email ?? 'Not provided';

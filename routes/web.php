@@ -26,7 +26,7 @@ Route::get('/', function () {
 Route::post(
     '/login',
     [AuthController::class, 'login']
-)->name('login');
+)->middleware('throttle:auth-limiter')->name('login');
 
 
 /*
@@ -42,7 +42,7 @@ Route::get('/register', function () {
 Route::post(
     '/register',
     [AuthController::class, 'register']
-)->name('registers');
+)->middleware('throttle:auth-limiter')->name('registers');
 
 
 /*
@@ -141,7 +141,7 @@ Route::middleware('auth')->group(function () {
     Route::post(
         '/addfriend',
         [Addfriends::class, 'addfriend']
-    )->name('addfriend');
+    )->middleware('throttle:chat-api')->name('addfriend');
 
 });
 
@@ -157,12 +157,12 @@ Route::middleware('auth')->group(function () {
     Route::post(
         '/open-chat',
         [PrivateChatController::class, 'openChat']
-    )->name('chat.open');
+    )->middleware('throttle:chat-api')->name('chat.open');
 
     Route::post(
         '/send-message',
         [PrivateChatController::class, 'sendMessage']
-    )->name('chat.send');
+    )->middleware('throttle:message-limiter')->name('chat.send');
 
 });
 
@@ -208,7 +208,7 @@ Route::middleware('auth')->group(function () {
     Route::post(
         '/open-group-chat',
         [Groupchatcontroller::class, 'openGroupChat']
-    )->name('group.open');
+    )->middleware('throttle:chat-api')->name('group.open');
 
 
     /*
@@ -220,7 +220,7 @@ Route::middleware('auth')->group(function () {
     Route::post(
         '/send-group-message',
         [Groupchatcontroller::class, 'sendmessage']
-    )->name('group.send');
+    )->middleware('throttle:message-limiter')->name('group.send');
 
 
     /*

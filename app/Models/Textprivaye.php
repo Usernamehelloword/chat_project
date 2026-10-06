@@ -19,6 +19,8 @@ class Textprivaye extends Model
         'chat_id',
         'group_id',
         'message',
+        'media_path',
+        'media_type',
     ];
 
 

@@ -314,6 +314,8 @@
 
 <body>
 
+@include('partials.loader')
+
 <div class="auth-wrapper">
 
     <div class="login-card">

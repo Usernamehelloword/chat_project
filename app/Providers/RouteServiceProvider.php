@@ -28,6 +28,21 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        // Window rate limit for authentication (e.g., login/register) to prevent brute force
+        RateLimiter::for('auth-limiter', function (Request $request) {
+            return Limit::perMinute(5)->by($request->input('email') ? (string) $request->input('email') . '|' . $request->ip() : $request->ip());
+        });
+
+        // Window rate limit for sending messages (prevent flooding / spam)
+        RateLimiter::for('message-limiter', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+        });
+
+        // Window rate limit for interactive chat & friend requests
+        RateLimiter::for('chat-api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
         $this->routes(function () {
             Route::middleware('api')
                 ->prefix('api')

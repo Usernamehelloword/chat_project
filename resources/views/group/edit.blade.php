@@ -982,6 +982,8 @@
 
 <body>
 
+@include('partials.loader')
+
 <div class="container">
 
     <!-- =========================================================

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
+    @include('partials.loader')
     @if(session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
@@ -18,7 +19,6 @@
     <p>Role: {{ $user->role }}</p>
     <p>Created At: {{ $user->created_at }}</p>
     <p>Updated At: {{ $user->updated_at }}</p>
-    <p>password: {{ $user->password }}</p>
     <form action="{{ route('users.update', $user->id) }}" method="POST">
         @csrf
         <label for="name">Name:</label>

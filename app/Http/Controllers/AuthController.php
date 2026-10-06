@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Profiles;
 use App\Models\Addfriend;
 use App\Models\Groupconnect;
@@ -13,120 +14,75 @@ use App\Models\Groupid;
 
 class AuthController extends Controller
 {
-   
+    public function view(Request $request)
+    {
+        $userId = Auth::id();
 
+        // CACHE LAYER: User & Profile cached for 1 hour (3600s)
+        $user = Cache::remember("user_profile_{$userId}", 3600, function () use ($userId) {
+            return User::with('profile')->findOrFail($userId);
+        });
 
-public function view(Request $request)
-{
-  
-    // LOGGED-IN USER
-  
+        $profile = $user->profile ?? Cache::remember("user_profile_raw_{$userId}", 3600, function () use ($userId) {
+            return Profiles::where('user_id', $userId)->first();
+        });
 
-    $user = User::with('profile')->findOrFail(Auth::id());
+        // SEARCH (dynamic, hidden fields protected)
+        $search_name = $request->input('search_name');
+        $users = collect();
 
-  
-    // PROFILE
-  
+        if (!empty($search_name)) {
+            $users = User::select(['id', 'name', 'email', 'number_id'])
+                ->where('name', 'like', '%' . $search_name . '%')
+                ->orWhere('email', 'like', '%' . $search_name . '%')
+                ->orWhere('number_id', 'like', '%' . $search_name . '%')
+                ->limit(10)
+                ->get();
+        }
 
-    $profile = $user->profile ?? Profiles::where(
-        'user_id',
-        Auth::id()
-    )->first();
+        // CACHE LAYER: Friends list cached for 5 minutes (300s)
+        $friend = Cache::remember("user_friends_{$userId}", 300, function () use ($userId) {
+            return Addfriend::where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->orWhere('friend_id', $userId);
+            })
+            ->where(function ($query) {
+                $query->whereNull('group_name')
+                      ->orWhere('group_name', '')
+                      ->orWhere('group_name', '0');
+            })
+            ->with([
+                'user.profile',
+                'friend.profile'
+            ])
+            ->get()
+            ->unique(function ($item) {
+                return collect([
+                    $item->user_id,
+                    $item->friend_id
+                ])
+                ->sort()
+                ->implode('-');
+            });
+        });
 
-  
-    // SEARCH
-  
+        // CACHE LAYER: User groups cached for 5 minutes (300s)
+        $groups = Cache::remember("user_groups_{$userId}", 300, function () use ($userId) {
+            $groupIds = Groupconnect::where('user_id', $userId)->pluck('group_id');
+            return Groupid::whereIn('id', $groupIds)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        });
 
-    $search_name = $request->input('search_name');
-
-    $users = collect();
-
-    if (!empty($search_name)) {
-
-        $users = User::where(
-                'name',
-                'like',
-                '%' . $search_name . '%'
-            )
-            ->orWhere(
-                'email',
-                'like',
-                '%' . $search_name . '%'
-            )
-            ->orWhere(
-                'number_id',
-                'like',
-                '%' . $search_name . '%'
-            )
-            ->limit(10)
-            ->get();
+        return view('main', compact(
+            'user',
+            'profile',
+            'users',
+            'search_name',
+            'friend',
+            'groups'
+        ));
     }
-
-  
-    // FRIENDS
-  
-
-    $friend = Addfriend::where(function ($query) {
-
-        $query->where('user_id', Auth::id())
-              ->orWhere('friend_id', Auth::id());
-
-    })
-    ->where(function ($query) {
-
-        // Only private friends
-        $query->whereNull('group_name')
-              ->orWhere('group_name', '')
-              ->orWhere('group_name', '0');
-
-    })
-    ->with([
-        'user.profile',
-        'friend.profile'
-    ])
-    ->get()
-    ->unique(function ($item) {
-
-        return collect([
-            $item->user_id,
-            $item->friend_id
-        ])
-        ->sort()
-        ->implode('-');
-
-    });
-
-  
-    // GROUPS
-  
-
-
-
-$groupIds = Groupconnect::where(
-    'user_id',
-    Auth::id()
-)->pluck('group_id');
-
-$groups = Groupid::whereIn(
-    'id',
-    $groupIds
-)
-->orderBy('created_at', 'desc')
-->get();
-
-  
-    // RETURN VIEW
-  
-
-    return view('main', compact(
-        'user',
-        'profile',
-        'users',
-        'search_name',
-        'friend',
-        'groups'
-    ));
-}
 
     public function login(Request $request)
     {
@@ -160,7 +116,7 @@ $groups = Groupid::whereIn(
 
         $request->session()->regenerateToken();
 
-        return redirect('email.login');
+        return redirect()->route('logins');
     }
 
     public function register(Request $request)

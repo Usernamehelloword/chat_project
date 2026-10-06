@@ -100,6 +100,11 @@ class ProfileController extends Controller
             auth()->user()->update(['name' => $request->name]);
         }
 
+        // Invalidate cache layer for this user profile & friend list
+        \Illuminate\Support\Facades\Cache::forget("user_profile_{$id}");
+        \Illuminate\Support\Facades\Cache::forget("user_profile_raw_{$id}");
+        \Illuminate\Support\Facades\Cache::forget("user_friends_{$id}");
+
         return redirect()
             ->back()
             ->with('success','Profile updated');

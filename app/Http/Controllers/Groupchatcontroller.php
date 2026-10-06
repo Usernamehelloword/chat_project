@@ -72,6 +72,9 @@ class Groupchatcontroller extends Controller
             ]
         );
 
+        // Invalidate groups cache for this user
+        \Illuminate\Support\Facades\Cache::forget("user_groups_{$userId}");
+
         return redirect()
             ->route('main')
             ->with('success', 'Group created successfully!');
@@ -166,18 +169,12 @@ class Groupchatcontroller extends Controller
 
     public function sendmessage(Request $request)
     {
-        $data = $request->validate([
+        $data = $request->validate(array_merge([
             'group_id' => [
                 'required',
                 'integer',
             ],
-
-            'message' => [
-                'required',
-                'string',
-                'max:5000',
-            ],
-        ]);
+        ], $this->chatMessageRules()));
 
         $groupId = (int) $data['group_id'];
 
@@ -227,11 +224,15 @@ class Groupchatcontroller extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $media = $this->storeChatMedia($request, 'group');
+
         $message = Groupchatmodel::create([
             'group_id'   => $groupId,
             'group_name' => $group->group_name,
             'user_id'    => auth()->id(),
-            'message'    => $data['message'],
+            'message'    => (string) ($data['message'] ?? ''),
+            'media_path' => $media['media_path'],
+            'media_type' => $media['media_type'],
         ]);
 
         /*
@@ -248,9 +249,13 @@ class Groupchatcontroller extends Controller
         |--------------------------------------------------------------------------
         */
 
-        broadcast(
-            new Groupchat($message)
-        );
+        try {
+            broadcast(
+                new Groupchat($message)
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Group chat broadcast failed: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,
@@ -444,7 +449,11 @@ class Groupchatcontroller extends Controller
                 'group_id' => $group->id,
                 'user_id'  => $userId,
             ]);
+
+            \Illuminate\Support\Facades\Cache::forget("user_groups_{$userId}");
         }
+
+        \Illuminate\Support\Facades\Cache::forget("user_groups_" . auth()->id());
 
         return redirect()
             ->route('main')
